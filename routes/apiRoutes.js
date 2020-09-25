@@ -1,47 +1,61 @@
 const express = require("express");
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs")
+const router = require("express"). Router();
 
-let noteData = require("../db/db.json")
 
-module.exports = function (app) {
 
+//module.exports = function(app) {
+
+    
     let dataStr = fs.readFileSync("./db/db.json", "utf8");
 
-    app.get("/api/notes", function (req, res) {
-        console.log("note acknowledge");
-        res.json(noteData);
+
+    router.get("/notes", function(req, res){
+        
+        console.log("getting note");
+        let readFile = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+
+        res.json(readFile);
     });
 
-    app.post("/api/notes", function (req, res) {
-        let newNote = req.body;
-        newNote.id = Math.floor(Math.random() * 10000);
+    router.post("/notes", function(req, res){
+        let notes = []
+       const { title, text } = req.body;
 
-        noteData.push(newNote);
-        res.json(noteData);
+        let newNote = { title, text, id: Math.floor(Math.random() * 10000)}
 
-        fs.writeFile("./db/db.json", JSON.stringify(noteData), function (err) {
+        let readFile = JSON.parse(fs.readFileSync("./db/db.json", "utf8"));
+        notes = notes.concat(readFile)
+        notes.push(newNote);
+       
+
+        fs.writeFile("./db/db.json", JSON.stringify(notes), function (err) {
             if (err) throw err;
-            res.end(noteData);
-            console.log("Note Written");
-        });
-
-        console.log("Saving");
+        });    
+        res.json(newNote);
+        console.log("saving note");
     });
 
-    app.delete("/api/notes/:id", function (req, res) {
+    router.delete("notes/:id", function(req, res){
+    
+console.log("req", req.params)
+        
         const notes = JSON.parse(fs.readFileSync("./db/db.json"));
         let id = req.params.id;
-
-        let deleteNote = notes.filter(notes => notes.id != id);
+        console.log("id", id)
+        
+        let deleteNote = notes.filter(note => note.id !==parseInt(id));
+        console.log("new arr", deleteNote)
 
         fs.writeFile("./db/db.json", JSON.stringify(deleteNote), function (err) {
             if (err) throw err;
-            console.log("Successful Note1");
-        });
-
-        noteData = deleteNote;
-        res.json(deleteNote);
-        console.log("Deleted Note");
+            console.log("sucessful write new");
+        });    
+        
+    
+        res.json({ok: true});
+        
     });
-}
+
+modules.exports = router
