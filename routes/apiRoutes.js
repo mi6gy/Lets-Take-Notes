@@ -58,4 +58,4 @@ console.log("req", req.params)
         
     });
 
-modules.exports = router
+module.exports = router
